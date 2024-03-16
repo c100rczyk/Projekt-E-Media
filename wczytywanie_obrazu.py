@@ -92,9 +92,10 @@ def main():
     path = "zdjecia/slonecznik.png"
     
     sunflower = load_picture(path)
-    IHDR(path)
-    
-    #PLTE(path)
+    #IHDR(path)
+    PLTE(path)      # wyświetla ilość zestawów bajtów RGB
+    # każdy zestaw bajtów stanowi jeden kolor zdefiniowany w palecie
+    # który może być używany w pikselach obrazu
 
     
 
