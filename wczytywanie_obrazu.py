@@ -1,4 +1,5 @@
 import struct
+from fft import spectrum
 
 def IHDR(chunk_data, chunk_type, length, crc):    
     width, height, bit_depth, color_type, compression, filter_type, interlace = struct.unpack('>IIBBBBB', chunk_data)
@@ -156,5 +157,7 @@ def main():
                     i += 1
                     iTxt_tEXt_zTXt(chunk_data, chunk_type, length, crc)   
                     print("---------------------------------")   
+    
+    spectrum(path)
 
 main()
