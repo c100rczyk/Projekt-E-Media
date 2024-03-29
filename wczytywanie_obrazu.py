@@ -108,7 +108,7 @@ def IEND(chunk_data, chunk_type, length, crc):
     print("Crc:", crc)
 
 def main():
-    path = "zdjecia/type_3.png"
+    path = "zdjecia/type_4.png"
     chunk_types = [b'IHDR', b'PLTE', b'cHRM', b'gAMA', b'tIME', b'IDAT', b'IEND']
     textual_chunk_types = [b'iTXt', b'tEXt', b'zTXt']
     i = 1

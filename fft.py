@@ -25,11 +25,11 @@ def spectrum(file_path):
     plt.title('Inverted Image')
 
     plt.subplot(223)
-    plt.imshow(np.log(magnitude+1), cmap='gray')  # Log scale for better visualization
+    plt.imshow(np.log(magnitude+1), cmap='gray')  
     plt.title('Magnitude')
 
     plt.subplot(224)
-    plt.imshow(phase, cmap='hsv')
+    plt.imshow(phase, cmap='gray')
     plt.title('Phase')
 
     plt.show()
