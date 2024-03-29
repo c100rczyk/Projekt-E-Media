@@ -10,7 +10,16 @@ def IHDR(chunk_data, chunk_type, length):
 def PLTE(chunk_data, chunk_type, length):
     print("Length:", length)
     print("Type:", chunk_type.decode('utf-8'))
-    print("Data:", chunk_data)
+    print("Data:")
+    palette_size = length // 3  
+    palette = []
+    for _ in range(palette_size):
+        rgb = struct.unpack('BBB', chunk_data[:3])
+        chunk_data = chunk_data[3:]
+        palette.append(rgb)
+
+    for i, rgb in enumerate(palette):
+        print(f"Entry {i+1}: RGB{rgb}")
 
 def cHRM(chunk_data, chunk_type, length):
     values = struct.unpack('>8I', chunk_data[:32])
@@ -90,7 +99,7 @@ def IEND(chunk_data, chunk_type, length):
     print("Data:")
 
 def main():
-    path = "zdjecia/linux.png"
+    path = "zdjecia/type_3.png"
     chunk_types = [b'IHDR', b'PLTE', b'cHRM', b'gAMA', b'tIME', b'IDAT', b'IEND']
     textual_chunk_types = [b'iTXt', b'tEXt', b'zTXt']
     i = 1
@@ -116,7 +125,7 @@ def main():
                     if chunk_type == b'IHDR':
                         IHDR(chunk_data, chunk_type, length)
                     elif chunk_type == b'PLTE':
-                        PLTE(chunk_data, chunk_type, length)
+                        PLTE(chunk_data, chunk_type, length, f)
                     elif chunk_type == b'cHRM':
                         cHRM(chunk_data, chunk_type, length)
                     elif chunk_type == b'gAMA':
