@@ -1,103 +1,144 @@
-import numpy as np
-import os
 import matplotlib.pyplot as plt
 import struct
 import subprocess
 import logging
 
+def IHDR(chunk_data, chunk_type, length):    
+    width, height, bit_depth, color_type, compression, filter_type, interlace = struct.unpack('>IIBBBBB', chunk_data)
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:")
+    print(f"Width: {width} Height: {height} Bit depth: {bit_depth} Color type: {color_type} Compression: {compression} Filter type: {filter_type} Interlace: {interlace}")
 
-def IHDR(file_path):    
-    with open(file_path, 'rb') as f:
-        # wczytuję sygnaturę png
-        signature = f.read(8)   # 8 pierwszych bajtów pliku PNG w celu sprawdzenia, czy plik jest zgodny z formatem PNG
-        print(signature)
-        if signature.startswith(b'\x89PNG\r\n\x1a\n'):
-            print("Obraz PNG")
-        else:
-            raise ValueError("To nie jest plik PNG.")
-        # Odczytanie kolejnych chunków i interpretacja informacji
+def PLTE(chunk_data, chunk_type, length):
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:", chunk_data)
+    return
+
+def cHRM(chunk_data, chunk_type, length):
+    values = struct.unpack('>8I', chunk_data[:32])
+
+    white_point_x = values[0] / 100000
+    white_point_y = values[1] / 100000
+    white_point_z = 1 - white_point_x - white_point_y
+
+    red_point_x = values[2] / 100000
+    red_point_y = values[3] / 100000
+    red_point_z = 1 - red_point_x - red_point_y
+
+    green_point_x = values[4] / 100000
+    green_point_y = values[5] / 100000
+    green_point_z = 1 - green_point_x - green_point_y
+
+    blue_point_x = values[6] / 100000
+    blue_point_y = values[7] / 100000
+    blue_point_z = 1 - blue_point_x - blue_point_y
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:")
+
+    print(f"White point:\n"
+          f"x: {white_point_x}"
+          f" y: {white_point_y}"
+          f" z: {white_point_z}")
+
+    print(f"Red point:\n"
+          f"x: {red_point_x}"
+          f" y: {red_point_y}"
+          f" z: {red_point_z}")
+
+    print(f"Green point:\n"
+          f"x: {green_point_x}"
+          f" y: {green_point_y}"
+          f" z: {green_point_z}")
+
+    print(f"Blue point:\n"
+          f"x: {blue_point_x}"
+          f" y: {blue_point_y}"
+          f" z: {blue_point_z}")
+
+def gAMA(chunk_data, chunk_type, length): 
+    gamma_value = struct.unpack('>I', chunk_data)[0]
+    if(gamma_value == 0):
+        raise ValueError("Error: gamma value can not equal to 0")
+    
+    gamma = gamma_value / 100000
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:")
+    print(f"Gamma: {gamma:.5f}\n") 
         
-        length_chunk = f.read(4)    #read() czyta kolejne x bajtów z pliku
-        chunk_type = f.read(4)
-        chunk_data = f.read(struct.unpack('>I', length_chunk)[0])
-        
+def tIME(chunk_data, chunk_type, length):
+    year, month, day, hour, minute, second = struct.unpack('>HBBBBB', chunk_data)
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:")
+    print(f"Ostatnia modyfikacja: {year}/{month}/{day} {hour}:{minute}:{second}\n")
+     
+def iTxt_tEXt_zTXt(chunk_data, chunk_type, length):
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    text = chunk_data.decode('utf-8')
+    print("Data:")
+    print(text)
 
-        if chunk_type == b'IHDR':
-            width, height = struct.unpack('>II', chunk_data[:8])
-            bit_depth, color_type, compression, filter_type, interlace = struct.unpack('BBBBB', chunk_data[8:])
-            print("Szerokość:", width)
-            print("Wysokość:", height)
-            print("Głębia bitowa:", bit_depth)
-            print("Rodzaj koloru:", color_type)
-            print("metoda filtracji", filter_type)
-            print("metoda splotu", interlace)
+def IDAT(chunk_data, chunk_type, length):
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:")
 
-
-def PLTE(file_path):
-    with open(file_path, "rb") as zdj:
-        
-        chunk_base = [0]*4
-        chunk_base[0] = b'\x50'
-        chunk_base[1] = b'\x4c'
-        chunk_base[2] = b'\x54'
-        chunk_base[3] = b'\x45'
-        
-        byte = zdj.read(1)
-        while byte:
-            print(byte)
-            if byte == chunk_base[0]:
-                byte = zdj.read(1)
-                if byte == chunk_base[1]:
-                    byte = zdj.read(1)
-                    if byte == chunk_base[2]:
-                        byte = zdj.read(1)
-                        if byte == chunk_base[3]:
-                            print("Wczytano PLTE")
-                            break
-            else:
-                print("szukaj dalej")
-
-            byte = zdj.read(1)
-                            
-        print(byte)
-        #znaleziono PLTE. Teraz wczytujemy
-        zdj.seek(-4,1)  #przesuniecie wskaźnika o 4 w lewo (z powrotem)
-        chunk_plte = zdj.read(4)
-        print(chunk_plte)
-        
-        chunk_length = struct.unpack('>I', chunk_plte)[0]  # rozpakować pierwsze 4 bajty
-
-        if chunk_plte == b'PLTE':
-            chunk_data = zdj.read(chunk_length)
-            # każdy z 3 kolejnych bajtów zalicza się do koloru
-            colors = [struct.unpack('BBB', chunk_data[i:i+3]) for i in range(0, len(chunk_data), 3)]
-            print("Color palette:")
-            for i, color in enumerate(colors):
-                print(f"Color {i+1}: R={color[0]}, G={color[1]}, B={color[2]}")
-            return
-
-        
-
-
-
-
-def load_picture(path):
-    sunflower = plt.imread(path)
-    plt.imshow(sunflower)
-    plt.show()
-    return sunflower
-
+def IEND(chunk_data, chunk_type, length):
+    print("Length:", length)
+    print("Type:", chunk_type.decode('utf-8'))
+    print("Data:")
 
 def main():
-    path = "zdjecia/slonecznik.png"
-    
-    sunflower = load_picture(path)
-    #IHDR(path)
-    PLTE(path)      # wyświetla ilość zestawów bajtów RGB
-    # każdy zestaw bajtów stanowi jeden kolor zdefiniowany w palecie
-    # który może być używany w pikselach obrazu
+    path = "zdjecia/linux.png"
+    chunk_types = [b'IHDR', b'PLTE', b'cHRM', b'gAMA', b'tIME', b'IDAT', b'IEND']
+    textual_chunk_types = [b'iTXt', b'tEXt', b'zTXt']
+    i = 1
 
-    
+    with open(path, "rb") as f:
+        signature = f.read(8)
 
+        if not signature.startswith(b'\x89PNG\r\n\x1a\n'):
+            raise ValueError("It is not a PNG file.")
+        else:
+            while True:
+                length_bytes = f.read(4)
+                if len(length_bytes) != 4:
+                    break
+                
+                length = struct.unpack('>I', length_bytes)[0]
+                chunk_type = f.read(4)
+                chunk_data = f.read(length)
+
+                if chunk_type in chunk_types:
+                    print(f"Chunk #{i}")
+                    i += 1
+                    if chunk_type == b'IHDR':
+                        IHDR(chunk_data, chunk_type, length)
+                    elif chunk_type == b'PLTE':
+                        PLTE(chunk_data, chunk_type, length)
+                    elif chunk_type == b'cHRM':
+                        cHRM(chunk_data, chunk_type, length)
+                    elif chunk_type == b'gAMA':
+                        gAMA(chunk_data, chunk_type, length)
+                    elif chunk_type == b'IDAT':
+                        IDAT(chunk_data, chunk_type, length)
+                    elif chunk_type == b'IEND':
+                        IEND(chunk_data, chunk_type, length)
+                    else: 
+                        tIME(chunk_data, chunk_type, length)
+                    print("---------------------------------")
+
+                elif chunk_type in textual_chunk_types:
+                    print(f"Chunk #{i}")
+                    i += 1
+                    iTxt_tEXt_zTXt(chunk_data, chunk_type, length)   
+                    print("---------------------------------")
+
+                f.seek(4, 1)     
 
 main()
