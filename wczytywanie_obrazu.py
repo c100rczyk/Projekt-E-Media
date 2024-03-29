@@ -1,7 +1,4 @@
-import matplotlib.pyplot as plt
 import struct
-import subprocess
-import logging
 
 def IHDR(chunk_data, chunk_type, length):    
     width, height, bit_depth, color_type, compression, filter_type, interlace = struct.unpack('>IIBBBBB', chunk_data)
@@ -14,7 +11,6 @@ def PLTE(chunk_data, chunk_type, length):
     print("Length:", length)
     print("Type:", chunk_type.decode('utf-8'))
     print("Data:", chunk_data)
-    return
 
 def cHRM(chunk_data, chunk_type, length):
     values = struct.unpack('>8I', chunk_data[:32])
@@ -113,7 +109,7 @@ def main():
                 length = struct.unpack('>I', length_bytes)[0]
                 chunk_type = f.read(4)
                 chunk_data = f.read(length)
-
+                
                 if chunk_type in chunk_types:
                     print(f"Chunk #{i}")
                     i += 1
