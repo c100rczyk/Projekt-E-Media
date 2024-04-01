@@ -1,5 +1,8 @@
 import struct
 from fft import spectrum
+from anonimizacja import new_image_without_adds
+import sys
+import os
 
 def IHDR(chunk_data, chunk_type, length, crc):    
     width, height, bit_depth, color_type, compression, filter_type, interlace = struct.unpack('>IIBBBBB', chunk_data)
@@ -107,57 +110,77 @@ def IEND(chunk_data, chunk_type, length, crc):
     print("Data:")
     print("Crc:", crc)
 
-def main():
-    path = "zdjecia/type_4.png"
-    chunk_types = [b'IHDR', b'PLTE', b'cHRM', b'gAMA', b'tIME', b'IDAT', b'IEND']
-    textual_chunk_types = [b'iTXt', b'tEXt', b'zTXt']
-    i = 1
+def main(args):
+    folder = "zdjecia"
+    path = ""
+    anonim_path = ""
 
-    with open(path, "rb") as f:
-        signature = f.read(8)
+    if(args[2] == 'show'):
+        path = os.path.join(folder, args[1])
+    elif(args[2] == 'anonim'):
+        path = os.path.join(folder, args[1])
+        anonim_path = os.path.join(folder, "anonim_"+ args[1])
+    else:
+        raise ValueError("Dostepne mozliwosci: /interpreter plik.py image.png show   lub  /interpreter plik.py image.png anonim")
 
-        if not signature.startswith(b'\x89PNG\r\n\x1a\n'):
-            raise ValueError("It is not a PNG file.")
-        else:
-            while True:
-                length_bytes = f.read(4)
-                if len(length_bytes) != 4:
-                    break
-                
-                length = struct.unpack('>I', length_bytes)[0]
-                chunk_type = f.read(4)
-                chunk_data = f.read(length)
-                
-                crc_bytes = f.read(4)
-                crc_int = struct.unpack('>I', crc_bytes)[0]
-                crc_bytes = crc_int.to_bytes(4, byteorder='big') 
-                crc = ' '.join(f'{b:02x}' for b in crc_bytes)
-                
-                if chunk_type in chunk_types:
-                    print(f"Chunk #{i}")
-                    i += 1
-                    if chunk_type == b'IHDR':
-                        IHDR(chunk_data, chunk_type, length, crc)
-                    elif chunk_type == b'PLTE':
-                        PLTE(chunk_data, chunk_type, length, crc)
-                    elif chunk_type == b'cHRM':
-                        cHRM(chunk_data, chunk_type, length, crc)
-                    elif chunk_type == b'gAMA':
-                        gAMA(chunk_data, chunk_type, length, crc)
-                    elif chunk_type == b'IDAT':
-                        IDAT(chunk_data, chunk_type, length, crc)
-                    elif chunk_type == b'IEND':
-                        IEND(chunk_data, chunk_type, length, crc)
-                    else: 
-                        tIME(chunk_data, chunk_type, length, crc)
-                    print("---------------------------------")
+    if(args[2] == 'show'):
+        chunk_types = [b'IHDR', b'PLTE', b'cHRM', b'gAMA', b'tIME', b'IDAT', b'IEND']
+        textual_chunk_types = [b'iTXt', b'tEXt', b'zTXt']
+        i = 1
 
-                elif chunk_type in textual_chunk_types:
-                    print(f"Chunk #{i}")
-                    i += 1
-                    iTxt_tEXt_zTXt(chunk_data, chunk_type, length, crc)   
-                    print("---------------------------------")   
+        with open(path, "rb") as f:
+            signature = f.read(8)
+
+            if not signature.startswith(b'\x89PNG\r\n\x1a\n'):
+                raise ValueError("It is not a PNG file.")
+            else:
+                while True:
+                    length_bytes = f.read(4)    # 1 część chunku : 4 bajty długości (określa jak duża jest zawartość 3 części)
+                    if len(length_bytes) != 4:
+                        break
+                    
+                    length = struct.unpack('>I', length_bytes)[0]
+                    chunk_type = f.read(4)      # 2 część chunku : 4 bajty typu (name)
+                    chunk_data = f.read(length) # 3 część chunku : length bajtów zawartości data      
+                    crc_bytes = f.read(4)       # 4 część chunku : 4 bajty 
+                    crc_int = struct.unpack('>I', crc_bytes)[0]
+                    crc_bytes = crc_int.to_bytes(4, byteorder='big') 
+                    crc = ' '.join(f'{b:02x}' for b in crc_bytes)
+                    
+                    if chunk_type in chunk_types:
+                        print(f"Chunk #{i}")
+                        i += 1
+                        if chunk_type == b'IHDR':
+                            IHDR(chunk_data, chunk_type, length, crc)
+                        elif chunk_type == b'PLTE':
+                            PLTE(chunk_data, chunk_type, length, crc)
+                        elif chunk_type == b'cHRM':
+                            cHRM(chunk_data, chunk_type, length, crc)
+                        elif chunk_type == b'gAMA':
+                            gAMA(chunk_data, chunk_type, length, crc)
+                        elif chunk_type == b'IDAT':
+                            IDAT(chunk_data, chunk_type, length, crc)
+                        elif chunk_type == b'IEND':
+                            IEND(chunk_data, chunk_type, length, crc)
+                        else: 
+                            tIME(chunk_data, chunk_type, length, crc)
+                        print("---------------------------------")
+
+                    elif chunk_type in textual_chunk_types:
+                        print(f"Chunk #{i}")
+                        i += 1
+                        iTxt_tEXt_zTXt(chunk_data, chunk_type, length, crc)   
+                        print("---------------------------------")
+        
+        spectrum(path)
+    if(args[2] == 'anonim'):
+        new_image_without_adds(path, anonim_path)
     
-    spectrum(path)
+#main()
+if __name__ == "__main__":
+    main(sys.argv)
 
-main()
+# /bin/python3 wczytywanie_obrazu.py zdjęcie.png show/anonim
+
+
+
