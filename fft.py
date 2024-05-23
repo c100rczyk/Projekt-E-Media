@@ -9,7 +9,7 @@ def spectrum(file_path):
 
     fourier = fftshift(fft2(image))
 
-    magnitude = np.abs(fourier)
+    magnitude = np.abs(fourier) # widmo amplitudy
     phase = np.angle(fourier)
 
     fourier_inverted = ifft2(fourier)
