@@ -152,17 +152,89 @@ def isMillerRabinPassed(miller_rabin_candidate):
     return True
 
 
+#TWORZENIE KLUCZY______________________________________________________________________________________________
 
+# Implementacja rozszerzonego algorytmu Eulidesa
+def extended_gcd(a,b):
+    if a == 0:
+        return b, 0, 1
+    gcd, x1, y1 = extended_gcd(b%a, a)
+
+    x = y1 - (b//a)*x1
+    y = x1
+    return gcd,x,y
+
+# obliczanie odwrotności multiplikatywnej
+def mod_inverse(e,phi):
+    gcd, x, _ = extended_gcd(e,phi)
+    if gcd != 1:
+        raise Exception("Odwrotność nie istnieje")
+    else:
+        return x % phi
+
+
+#MAIN_______________________________________________________________________________________________________________________
 if __name__ == '__main__':
+    p = 0
+    q = 0
+
     while True: 
         first_primes_list = SieveOfEratosthenes(350)        #trochę liczb pierwszych
-        n = 1024    # liczba n-bitowa
+        n = 100    # liczba n-bitowa
         prime_candidate = getLowLevelPrime(n)
 
         if not isMillerRabinPassed(prime_candidate):
             continue
         else:
-            print(n, "bit prime is: ", prime_candidate)
+            p = prime_candidate
+            break
+    while True: 
+        first_primes_list = SieveOfEratosthenes(350)        #trochę liczb pierwszych
+        n = 100   # liczba n-bitowa
+        prime_candidate = getLowLevelPrime(n)
+
+        if not isMillerRabinPassed(prime_candidate):
+            continue
+        else:
+            q = prime_candidate
             break
 
 
+    print(n, "bit prime is: ", p)
+    print(n, "bit prime is: ", q)
+
+    # Generowanie klucza publicznego:
+    n = p*q
+    print(f"n: {n}")
+
+    phi = (p-1)*(q-1)   # funkcja Eulera
+    print(f"phi: {phi}")
+
+    e = random.randrange(1, phi)
+
+    g, _,_ = extended_gcd(e,phi)
+    while g != 1:
+        e = random.randrange(2,phi)
+        g,_,_ = extended_gcd(e,phi)
+
+    d = mod_inverse(e,phi)
+
+    # Klucz publiczny (e,n) i klucz prywatny (d,n)
+
+    print(f"klucz publiczny: ({e} ,\n {n})")
+    print(f"klucz prywatny : ({d},\n {n})")
+
+
+
+    # Proste Testy szyfrowania i deszyfrowania
+
+    wiadomosc_tekstowa = 12
+    print(f"prawdziwa wiadomość: {wiadomosc_tekstowa}")
+
+    c = pow(wiadomosc_tekstowa,e,n)
+
+    print(f"zaszyfrowana wiadomość: {c}")
+
+    m = pow(c,d,n)
+
+    print(f"Wiadomość po zdeszyfrowaniu: {m}")
