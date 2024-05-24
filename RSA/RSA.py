@@ -64,35 +64,32 @@ JAK generujemy dużą liczbę pierwszą (o określonym rozmiarze bitowym):
 "stworzenie listy ,,pierszych,, liczb pierwszych, począwszy od najmniejszych"
 def SieveOfEratosthenes(n):
  
-    # Create a boolean array
-    # "prime[0..n]" and initialize
-    #  all entries it as true.
-    # A value in prime[i] will
-    # finally be false if i is
-    # Not a prime, else true.
+
+    # Stworzenie tablicy true/false
+    # Wszystkie liczby pierwsze są true
     prime = [True for i in range(n+1)]
     prime_good = []
-    p = 2
+    p = 2   # 2 jest najmniejszą liczbą pierwszą
     while (p * p <= n):
  
         # If prime[p] is not
         # changed, then it is a prime
         if (prime[p] == True):
  
-            # Update all multiples of p
+            # jeśli p jest liczbą pierwszą , ustawiamy wszystkie
+            # jej wielokrotności jako nie pierwsze (False)
             for i in range(p * p, n+1, p):
-                prime[i] = False
+                prime[i] = False    
         p += 1
  
-    # Print all prime numbers
+    # wszystkie liczby pierwsze
     for p in range(2, n+1):
         if prime[p]:
-            print(p)
             prime_good.append(p)
     return prime_good
  
-first_primes_list = SieveOfEratosthenes(20)
-print(first_primes_list)
+# first_primes_list = SieveOfEratosthenes(20)
+# print(first_primes_list)
 
 
 
@@ -115,12 +112,57 @@ def getLowLevelPrime(n):
     
 
 #liczba pierwsza po testach niskiego poziomu
-liczba_pierwsza = getLowLevelPrime(20)
-print(liczba_pierwsza)
+# liczba_pierwsza = getLowLevelPrime(20)
+# print(liczba_pierwsza)
         
 
 #______________________________________________________________________
 """
 Testy wysokiego poziomu liczb pierwszych
 
+Jeśli wprowadzona wartość przejdzie pojedynczą iterację Rabina Millera, prawdopodobieństwo że liczba 
+jest pierwsza wynosi 75%.
 """
+
+
+def isMillerRabinPassed(miller_rabin_candidate):
+    "Uruchomienie 20 iteracji"
+    maxDivisionByTwo = 0
+    evenComponent = miller_rabin_candidate - 1
+
+    while evenComponent % 2 == 0:
+        evenComponent >>= 1
+        maxDivisionByTwo += 1
+    assert(2**maxDivisionByTwo * evenComponent == miller_rabin_candidate - 1)
+
+    def trialComposite(round_tester):
+        if pow(round_tester, evenComponent, miller_rabin_candidate) == 1:
+            return False
+        for i in range(maxDivisionByTwo):
+            if pow(round_tester, 2**i * evenComponent, miller_rabin_candidate) == miller_rabin_candidate - 1:
+                return False
+        return True
+    
+    numberOfRabinTrials = 128            # błąd niepewności wynosi 1 / (2^20)
+
+    for i in range(numberOfRabinTrials):
+        round_tester = random.randrange(2, miller_rabin_candidate)
+        if trialComposite(round_tester):
+            return False
+    return True
+
+
+
+if __name__ == '__main__':
+    while True: 
+        first_primes_list = SieveOfEratosthenes(350)        #trochę liczb pierwszych
+        n = 1024    # liczba n-bitowa
+        prime_candidate = getLowLevelPrime(n)
+
+        if not isMillerRabinPassed(prime_candidate):
+            continue
+        else:
+            print(n, "bit prime is: ", prime_candidate)
+            break
+
+

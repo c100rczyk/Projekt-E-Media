@@ -1,0 +1,14 @@
+Szyfrowanie RSA pliku .png 
+
+Program ma szyfrować a następnie deszyfrować plik.
+(Szyfrujemy masę bitową pliku, nagłówek i metadane pozostawić bez zmian)
+-> Chodzi o to aby móc otworzyć sam plik tak jak normalnie, ale sama
+jego zawartość już będzie zaszyfrowana.
+
+- Asymetric Encryption
+Public and private key
+
+
+
+Jak generujemy klucz:
+
