@@ -8,7 +8,12 @@ jego zawartość już będzie zaszyfrowana.
 - Asymetric Encryption
 Public and private key
 
+RSA działa ponieważ bardzo trudno jest rozłożyć na czynniki dużą liczbę całkowitą.
+Klucz publiczny :
+jest wynikiem pomnożenia dwóch dużych liczb pierwszych
 
+Klucz prywatny :
+jest wynikiem 
 
 Jak generujemy klucz:
 
